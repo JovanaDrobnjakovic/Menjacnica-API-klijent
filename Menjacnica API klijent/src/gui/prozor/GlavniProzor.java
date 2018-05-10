@@ -2,16 +2,25 @@ package gui.prozor;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.LinkedList;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import currencyConverter.CurrencyLayerApiCommunication;
+import currencyConverter.URLConnection;
 import currencyConverter.Zemlja;
 
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JComboBox;
 import javax.swing.JTextField;
 import javax.swing.JButton;
@@ -141,7 +150,44 @@ public class GlavniProzor extends JFrame {
 	private JButton getBtnKonvertuj() {
 		if (btnKonvertuj == null) {
 			btnKonvertuj = new JButton("Konvertuj");
-			btnKonvertuj.setBounds(106, 213, 143, 47);
+			btnKonvertuj.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					Zemlja zemlja1 = null, zemlja2 = null;
+					for (int i = 0; i < countries.size(); i++) {
+						if (comboBoxIZ.getSelectedItem().equals(countries.get(i).getName())) {
+							zemlja1 = countries.get(i);
+						}
+						if (comboBoxU.getSelectedItem().equals(countries.get(i).getName())) {
+							zemlja2 = countries.get(i);
+						}
+					}
+					String s = zemlja1.getCurrencyId() + "_";
+					s += zemlja2.getCurrencyId();
+					String p = s;
+					s = "http://free.currencyconverterapi.com/api/v3/convert?q=" + p;
+					try {
+						s = URLConnection.getContent(s);
+						JsonParser jp = new JsonParser();
+						JsonObject obj = jp.parse(s).getAsJsonObject();
+						Gson g = new GsonBuilder().create();
+						int count = g.fromJson(obj.getAsJsonObject("query").getAsJsonPrimitive("count"), int.class);
+						if (count == 0) {
+							JOptionPane.showMessageDialog(null, "Ne postoji transakcija", "Greska",
+									JOptionPane.ERROR_MESSAGE);
+							return;
+						}
+						double odnos = g.fromJson(
+								obj.getAsJsonObject("results").getAsJsonObject(p).getAsJsonPrimitive("val"),
+								double.class);
+						Double d = new Double(odnos * Double.parseDouble(textFieldIznosIz.getText()));
+						textFieldIznosU.setText(d.toString());
+
+					} catch (Exception e1) {
+						e1.printStackTrace();
+					}
+				}
+			});
+			btnKonvertuj.setBounds(106, 219, 143, 31);
 		}
 		return btnKonvertuj;
 	}
