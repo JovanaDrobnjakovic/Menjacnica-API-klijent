@@ -4,6 +4,10 @@ import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.util.GregorianCalendar;
 import java.util.LinkedList;
 
 import javax.swing.JFrame;
@@ -16,6 +20,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import currencyConverter.CurrencyLayerApiCommunication;
+import currencyConverter.Konverzija;
 import currencyConverter.URLConnection;
 import currencyConverter.Zemlja;
 
@@ -169,7 +174,7 @@ public class GlavniProzor extends JFrame {
 						s = URLConnection.getContent(s);
 						JsonParser jp = new JsonParser();
 						JsonObject obj = jp.parse(s).getAsJsonObject();
-						Gson g = new GsonBuilder().create();
+						Gson g = new GsonBuilder().setPrettyPrinting().create();
 						int count = g.fromJson(obj.getAsJsonObject("query").getAsJsonPrimitive("count"), int.class);
 						if (count == 0) {
 							JOptionPane.showMessageDialog(null, "Ne postoji transakcija", "Greska",
@@ -181,11 +186,25 @@ public class GlavniProzor extends JFrame {
 								double.class);
 						Double d = new Double(odnos * Double.parseDouble(textFieldIznosIz.getText()));
 						textFieldIznosU.setText(d.toString());
-
-					} catch (Exception e1) {
-						e1.printStackTrace();
-					}
-				}
+						Konverzija k = new Konverzija();
+												k.setDatum(new GregorianCalendar().getTime());
+												k.setIzValuta(zemlja1.getCurrencyId());
+												k.setuValuta(zemlja2.getCurrencyId());
+												k.setKurs(odnos);
+												
+												
+												
+												String kon = g.toJson(k);
+						PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter("data/log.json", true)));
+												writer.println(kon);
+												writer.close();
+						
+						 					}
+					
+					catch (Exception e1) {
+ 						e1.printStackTrace();
+ 					}
+			}
 			});
 			btnKonvertuj.setBounds(106, 219, 143, 31);
 		}
