@@ -1,14 +1,6 @@
 package gui.prozor;
 
-import java.awt.BorderLayout;
-import java.awt.EventQueue;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.util.GregorianCalendar;
-import java.util.LinkedList;
+
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -19,15 +11,20 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import currencyConverter.CurrencyLayerApiCommunication;
+
 import currencyConverter.Konverzija;
 import currencyConverter.URLConnection;
 import currencyConverter.Zemlja;
+import gui.kontroler.GUIKontroler;
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JComboBox;
 import javax.swing.JTextField;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 import javax.swing.JButton;
 
 public class GlavniProzor extends JFrame {
@@ -35,30 +32,15 @@ public class GlavniProzor extends JFrame {
 	private JPanel contentPane;
 	private JLabel lblNewLabel;
 	private JLabel lblUValutuZemlje;
-	private JComboBox comboBoxIZ;
-	private JComboBox comboBoxU;
+	public static JComboBox comboBoxIZ;
+	public static JComboBox comboBoxU;
 	private JLabel lblIznos;
 	private JLabel lblIznos_1;
-	private JTextField textFieldIznosIz;
-	private JTextField textFieldIznosU;
+	public static JTextField textFieldIznosIz;
+	public static JTextField textFieldIznosU;
 	private JButton btnKonvertuj;
-	LinkedList<Zemlja> countries = CurrencyLayerApiCommunication.getCountries();
+	
 
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					GlavniProzor frame = new GlavniProzor();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
 
 	/**
 	 * Create the frame.
@@ -81,8 +63,8 @@ public class GlavniProzor extends JFrame {
 		contentPane.add(getTextFieldIznosIz());
 		contentPane.add(getTextFieldIznosU());
 		contentPane.add(getBtnKonvertuj());
-		dodajZemlju(comboBoxU);
-		dodajZemlju(comboBoxIZ);
+		GUIKontroler.dodajZemlju(comboBoxU);
+		GUIKontroler.dodajZemlju(comboBoxIZ);
 
 	}
 
@@ -154,67 +136,21 @@ public class GlavniProzor extends JFrame {
 
 	private JButton getBtnKonvertuj() {
 		if (btnKonvertuj == null) {
+			
+					
 			btnKonvertuj = new JButton("Konvertuj");
 			btnKonvertuj.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					Zemlja zemlja1 = null, zemlja2 = null;
-					for (int i = 0; i < countries.size(); i++) {
-						if (comboBoxIZ.getSelectedItem().equals(countries.get(i).getName())) {
-							zemlja1 = countries.get(i);
-						}
-						if (comboBoxU.getSelectedItem().equals(countries.get(i).getName())) {
-							zemlja2 = countries.get(i);
-						}
-					}
-					String s = zemlja1.getCurrencyId() + "_";
-					s += zemlja2.getCurrencyId();
-					String p = s;
-					s = "http://free.currencyconverterapi.com/api/v3/convert?q=" + p;
-					try {
-						s = URLConnection.getContent(s);
-						JsonParser jp = new JsonParser();
-						JsonObject obj = jp.parse(s).getAsJsonObject();
-						Gson g = new GsonBuilder().setPrettyPrinting().create();
-						int count = g.fromJson(obj.getAsJsonObject("query").getAsJsonPrimitive("count"), int.class);
-						if (count == 0) {
-							JOptionPane.showMessageDialog(null, "Ne postoji transakcija", "Greska",
-									JOptionPane.ERROR_MESSAGE);
-							return;
-						}
-						double odnos = g.fromJson(
-								obj.getAsJsonObject("results").getAsJsonObject(p).getAsJsonPrimitive("val"),
-								double.class);
-						Double d = new Double(odnos * Double.parseDouble(textFieldIznosIz.getText()));
-						textFieldIznosU.setText(d.toString());
-						Konverzija k = new Konverzija();
-												k.setDatum(new GregorianCalendar().getTime());
-												k.setIzValuta(zemlja1.getCurrencyId());
-												k.setuValuta(zemlja2.getCurrencyId());
-												k.setKurs(odnos);
-												
-												
-												
-												String kon = g.toJson(k);
-						PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter("data/log.json", true)));
-												writer.println(kon);
-												writer.close();
-						
-						 					}
-					
-					catch (Exception e1) {
- 						e1.printStackTrace();
- 					}
-			}
+					GUIKontroler.konvertuj();
+
+				}
 			});
 			btnKonvertuj.setBounds(106, 219, 143, 31);
 		}
 		return btnKonvertuj;
 	}
-
-	private void dodajZemlju(JComboBox zem) {
-		for (int i = 0; i < countries.size(); i++) {
-			zem.addItem(countries.get(i).getName());
-		}
 	}
 
-}
+	
+
+

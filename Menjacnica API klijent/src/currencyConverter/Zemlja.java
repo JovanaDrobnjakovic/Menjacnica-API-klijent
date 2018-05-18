@@ -1,6 +1,7 @@
 package currencyConverter;
 
 public class Zemlja {
+	
 	private String alpha3;
 	private String currencyId;
 	private String currencyName;
